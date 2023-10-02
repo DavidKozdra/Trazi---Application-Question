@@ -24,7 +24,6 @@ fs.readFile(csvFilePath, 'utf8', (err, data) => {
   
 app.use(express.json());
 
-// GET endpoint to retrieve population data for a state and city
 app.get('/api/population/state/:state/city/:city', (req, res) => {
   const state = req.params.state.toLowerCase();
   const city = req.params.city.toLowerCase();
@@ -38,33 +37,46 @@ app.get('/api/population/state/:state/city/:city', (req, res) => {
 
 });
 
-// PUT endpoint to update or create population data for a state and city
 app.put('/api/population/state/:state/city/:city', (req, res) => {
   const state = req.params.state.toLowerCase();
   const city = req.params.city.toLowerCase();
   const key = `${state}-${city}`;
   const {population} = req.body;
-
+    let statusCode;
   if (!population || isNaN(population)) {
     console.log(population)
     res.status(400).json({ error: 'Invalid population data' });
     return;
   }
 
-  populationData[key] = population;
-
-  // Update the CSV file
-  const rows = [];
-  for (const key in populationData) {
-    const [state, city] = key.split('-');
-    const population = populationData[key];
-    rows.push(`${city},${state},${population}`);
+if (populationData[key]) {
+     statusCode = 200;
+  
+    const rows = [];
+    for (const key in populationData) {
+      const [state, city] = key.split('-');
+      const population = populationData[key];
+      rows.push(`${city},${state},${population}`);
+    }
+  
+    fs.writeFileSync(csvFilePath, rows.join('\n'));
+  
+    res.status(200).json({ message: 'Data updated successfully' });
+  } else {
+     statusCode = 201;
+  
+    const rows = [];
+    for (const key in populationData) {
+      const [state, city] = key.split('-');
+      const population = populationData[key];
+      rows.push(`${city},${state},${population}`);
+    }
+  
+    fs.writeFileSync(csvFilePath, rows.join('\n'));
+  
+    res.status(201).json({ message: 'Data added and updated successfully' });
   }
-
-  fs.writeFileSync(csvFilePath, rows.join('\n'));
-
-  const statusCode = populationData[key] ? 200 : 201;
-  res.status(statusCode).json({ message: 'Population data '+ statusCode == 200  ? "created": "updated"});
+  res.status(statusCode).json({ message: 'Population data '+ (statusCode == 200  ? "created": "updated")});
 });
 
 app.listen(port, () => {
