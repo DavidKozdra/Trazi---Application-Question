@@ -25,15 +25,15 @@ fs.readFile(csvFilePath, 'utf8', (err, data) => {
 app.use(express.json());
 
 app.get('/api/population/state/:state/city/:city', (req, res) => {
-  const state = req.params.state.toLowerCase();
-  const city = req.params.city.toLowerCase();
-  const key = `${state}-${city}`;
+    const state = req.params.state.toLowerCase();
+    const city = req.params.city.toLowerCase();
+    const key = `${state}-${city}`;
 
-  if (populationData[key]) {
-    res.status(200).json({ population: populationData[key] });
-  } else {
-    res.status(400).json({ error: 'State/city not found' });
-  }
+    if (populationData[key]) {
+        res.status(200).json({ population: populationData[key] });
+    } else {
+        res.status(400).json({ error: 'State/city not found' });
+    }
 
 });
 
@@ -50,33 +50,27 @@ app.put('/api/population/state/:state/city/:city', (req, res) => {
   }
 
 if (populationData[key]) {
-     statusCode = 200;
-  
+    statusCode = 200;
     const rows = [];
     for (const key in populationData) {
-      const [state, city] = key.split('-');
-      const population = populationData[key];
-      rows.push(`${city},${state},${population}`);
+        const [state, city] = key.split('-');
+        const population = populationData[key];
+        rows.push(`${city},${state},${population}`);
     }
-  
-    fs.writeFileSync(csvFilePath, rows.join('\n'));
-  
-    res.status(200).json({ message: 'Data updated successfully' });
   } else {
-     statusCode = 201;
+    statusCode = 201;
   
     const rows = [];
     for (const key in populationData) {
-      const [state, city] = key.split('-');
-      const population = populationData[key];
-      rows.push(`${city},${state},${population}`);
+        const [state, city] = key.split('-');
+        const population = populationData[key];
+        rows.push(`${city},${state},${population}`);
     }
   
-    fs.writeFileSync(csvFilePath, rows.join('\n'));
-  
-    res.status(201).json({ message: 'Data added and updated successfully' });
   }
-  res.status(statusCode).json({ message: 'Population data '+ (statusCode == 200  ? "created": "updated")});
+
+    fs.writeFileSync(csvFilePath, rows.join('\n'));
+    res.status(statusCode).json({ message: 'Population data '+ (statusCode == 200  ? "created": "updated")});
 });
 
 app.listen(port, () => {
